@@ -1,0 +1,118 @@
+/ Trevor Smith, CSC 205 - 002M, Professor Hui
+/ Parity Checker for the ASCII system.
+
+start,  INPUT				/ Directs the user for input that they deem appropriate. In this case ASCII values such as "!" or "a".
+	STORE X        	      	/ Stores a value given by the user as an ASCII value.
+	OUTPUT		       	/ For efficiency, the value is outputed as it's decimal immediately. For "!" this is 33.  
+
+for, LOAD X			  	/ This is the required loop, which cycles through the binary value of the input, searching for
+	check6, 	LOAD X       	/ The 6th bit will be checked. A one that may be detected will be logged. 
+			SUBT bit6    	/ DEC 64 is subtracted (01000000 in binary) to give us a value we can store as the difference. 
+			STORE diff   	/ Should X < 2^6 the value will be one and stored as such. This is stored in this command.
+			SKIPCOND 000 	/ Skipcond will take our diff value and evaluate. If AC < 0 the next instruction will be skipped
+ 	       	JNS update   	/ We "Jump & Store" to the update subroutine to load and save our difference, 
+
+	Check5, 	LOAD X      	 / The prior process is repeated. 
+			SUBT bit5   	 / This time DEC 32 (00100000 in binary) will be checked. 
+			STORE diff   	/ The difference is stored and the process continues.
+			SKIPCOND 000 	/ AC < 0 is checked again.
+			JNS update   	/ This command sees to it that the program moves its way down to the update routine 
+				     
+	check4, 	LOAD X
+			SUBT bit4	    / The process of checking is repeated another five times until it is complete.
+			STORE diff	   / While this is happening, the routines are calling the "update" routine, as well
+			SKIPCOND 000	 / as the "totaling" routine nested within that routine too. 
+			JNS update	        
+
+	check3, 	LOAD X
+			SUBT bit3	
+			STORE diff	        
+			SKIPCOND 000
+			JNS update
+
+	check2, 	LOAD X		/ With each check, the subtracted bit is one binary bit less than the previous check. 
+			SUBT bit2	     / This is to ensure that as the input is checked, each binary position is accounted for 
+			STORE diff	    / and tallied up along with the others.
+			SKIPCOND 000
+			JNS update
+
+	check1, 	LOAD X
+			SUBT bit1
+			STORE diff
+			SKIPCOND 000
+			JNS update
+
+	check0, 	LOAD X
+			SUBT bit0
+			STORE diff
+			SKIPCOND 000
+			JNS update
+			JUMP end
+endfor,	   HALT     		/ For loop ends here, effectively halting the program.
+
+	end,	    LOAD totalOnes     / totalOnes is loaded for the purpose of outputting it in the next instruction
+			OUTPUT	     / The instruction indicates that it should be displayed as the number of 1's in the binary representation
+			
+			LOAD totalOnes		     / totalOnes is loaded and set to zero again so that when the program is restarted, as we jump to the start, 
+			SUBT totalOnes		     / no errors or false reporting of values as ones in a binary representation occur. 
+			STORE totalOnes		    / The value is returned to zero to begin again. 
+			
+
+			LOAD p			     / Here the value of the partial is loaded to be outputed.
+			OUTPUT			     / The command following the load instruction outputs the partial value.
+
+			LOAD p			     / Just as above in regard to the totalOnes value, the value of each partial is
+			SUBT p			     / restored each time the coded is halted and started up again. To do this we must
+			STORE p			    / subtract it from itself and store it to return it to its intial condition.
+			
+			JUMP start			 / Returns us to "start" to complete the program. END of program.
+		
+
+			
+	/ update routine will be invoked in every checking routine to store the diff for each check, and increment the count
+	update, 	HEX 0
+			LOAD diff	    / Save diff in place of X
+			STORE X	      / Store diff where X is
+			JNS totaling	 / Jump & Store to the "totaling" routine. This helped me clean up my code. 
+					     / The method itself is listed below, and determines the value of the totalOnes variable.
+			IF, LOAD p	   / The if statement loads the partial, this is a check to make sure the process is working.
+			    SKIPCOND 400     / It may in fact be useless to the design of the program but I didn'y want to jeopardize the output of my code.	
+			    JUMP ELSE	/ In the previous instruction we skipped the else clause if the partial was equal to zero. 
+			    LOAD one	 / A value of one is loaded, this is later stored as the partial. Without it the partial would be zero.
+			    JUMP end_if      / The if statement has been worked through, and we jump to the end of the statement.	
+			
+			ELSE, CLEAR	  / If the partial was previously equal to anything other than zero, we clear the values of the AC 
+			       	      / This shold not truly be needed as the partial will always equal zero before it equals one in the statement.
+			      STORE p        / Partial value is stored and the else clause can be exited via the next instruction.
+			      JUMP end_if    / The else clause is jumped from, and we return to the rest of the update subroutine.
+
+			end_if, STORE p      / Just as the partial is saved from the if statement, it is saved should it take the else clause route.
+				
+			
+			CLEAR		/ Fills the AC with zeros
+			JUMPI update 	/ Ends subroutine and returns us to checking sequence until the program can jump to the end.  
+	
+	/ The use of this method helped me seperate the algorithm which would determine the amount of 1's in each ASCII value. 
+	totaling,       HEX 0		/ This is a seperate subrountine for calculating the total of 1's in each binary representation
+			LOAD totalOnes       / First I loaded the value. 
+			ADD one	      / A value of one is added to it, each evaluation of the total of 1's was either short one or incorrect
+			STORE totalOnes      / due to the checking routines above. 
+			CLEAR		/ The routine is cleared or any values in the accumulator.
+			JUMPI totaling       / End of totaling routine.
+
+/ Bits used in the check routines that determined the difference
+/ and helped identify where 1's may have been located. 
+bit6,		DEC 64	       / In binary: 01000000
+bit5,		DEC 32	       / In binary: 00100000
+bit4,		DEC 16	       / In binary: 00010000
+bit3,		DEC 8	        / In binary: 00001000
+bit2,		DEC 4	        / In binary: 00000100
+bit1,		DEC 2	        / In binary: 00000010
+bit0,		DEC 1	        / In binary: 00000001
+
+diff,		DEC 1		/ The difference between the input and the binary representation
+X,	   	HEX 0		/ Used to as the user input throughout the program
+count,       	DEC 0		/ Used to increment when necessary and 
+totalOnes,	   DEC 0		/ The total of 1's counted in each binary representation presented to the program.
+one,	 	DEC 1		/ At times it was necessary to involve a one, but not necessarily to increment a count of any kind. 
+p,                   DEC 0        	/ Value of partial, originally set to zero until later manipulation. 

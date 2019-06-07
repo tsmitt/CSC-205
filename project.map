@@ -1,0 +1,33 @@
+ --------------------
+ Symbol    | Location
+ ----------+---------
+ Check5    |   009
+ ELSE      |   03D
+ IF        |   038
+ X         |   051
+ bit0      |   04F
+ bit1      |   04E
+ bit2      |   04D
+ bit3      |   04C
+ bit4      |   04B
+ bit5      |   04A
+ bit6      |   049
+ check0    |   022
+ check1    |   01D
+ check2    |   018
+ check3    |   013
+ check4    |   00E
+ check6    |   004
+ count     |   052
+ diff      |   050
+ end       |   029
+ end_if    |   040
+ endfor    |   028
+ for       |   003
+ one       |   054
+ p         |   055
+ start     |   000
+ totalOnes |   053
+ totaling  |   043
+ update    |   034
+
